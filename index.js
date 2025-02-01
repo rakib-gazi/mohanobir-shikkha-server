@@ -75,6 +75,18 @@ async function run() {
   
       res.send(result);
     });
+    app.get("/recovery/:mobile", async (req, res) => {
+      const mobile = req.params.mobile;
+       const query = { mobile: mobile };
+       console.log(query);
+      const result = await mohanobirShikkhaCollection.find(query).toArray();
+      if (!result) {
+        return res.send({ mobile: false, message: "User not found" });
+      }
+      console.log(result);
+  
+      res.send(result);
+    });
 
     app.post("/users", async (req, res) => {
       const user = req.body;
