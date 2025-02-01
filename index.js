@@ -62,6 +62,19 @@ async function run() {
     app.get("/", (req, res) => {
       res.send("Mohanobir Shikkha server is running");
     });
+    app.get("/profile/:id", async (req, res) => {
+      let id =req.params.id;
+      id = id.padStart(3, '0');
+       const query = { applicantId: id };
+       console.log(query);
+      const result = await mohanobirShikkhaCollection.findOne(query);
+      if (!result) {
+        return res.send({ user: false, message: "User not found" });
+      }
+      console.log(result);
+  
+      res.send(result);
+    });
 
     app.post("/users", async (req, res) => {
       const user = req.body;
