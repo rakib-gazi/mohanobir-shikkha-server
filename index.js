@@ -129,31 +129,35 @@ async function run() {
       res.send(result);
     });
     app.post("/find-users", async (req, res) => {
-      const { productName, productType, sort, availability } = req.body;
+      const { fullName, paymentStatus, event } = req.body;
       let query = {};
-      let sortOptions = {};
-      if (productName) {
-        query.productName = { $regex: productName, $options: "i" };
+      const page = parseInt(req.query.page) ;
+      const limit = parseInt(req.query.limit) ;
+      if (fullName) {
+        query.fullName = { $regex: fullName, $options: "i" };
       }
-      if (availability === "Available") {
-        query.productQuantity = { $gt: 0 };
-      } else if (availability === "Out-of-stock") {
-        query.productQuantity = { $eq: 0 };
+      if (event) {
+        query.events = { $in: [event] };
+    }
+      if (paymentStatus) {
+        query.payment = paymentStatus;
       }
-      if (productType) {
-        query.productType = productType;
-      }
-      if (sort === "high") {
-        sortOptions.productQuantity = -1;
-      } else if (sort === "low") {
-        sortOptions.productQuantity = 1;
-      }
+      
+      const totalItems = await mohanobirShikkhaCollection.countDocuments(
+        query
+      );
       const result = await mohanobirShikkhaCollection
         .find(query)
-        .sort(sortOptions)
+        .skip((page - 1) * limit)
+        .limit(limit)
         .toArray();
 
-      res.send(result);
+      res.send({
+        data: result,
+        currentPage: page,
+        totalPages: Math.ceil(totalItems / limit),
+        totalItems,
+      });
     });
 
     // mohanobir shikkha end here
