@@ -5,9 +5,7 @@ require("dotenv").config();
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const app = express();
 const port = process.env.PORT || 5000;
-app.use(
-  cors()
-);
+app.use(cors());
 app.use(express.json());
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.whnyl.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 const client = new MongoClient(uri, {
@@ -63,57 +61,48 @@ async function run() {
       res.send("Mohanobir Shikkha server is running");
     });
     app.get("/profile/:id", async (req, res) => {
-      let id =req.params.id;
-      id = id.padStart(3, '0');
-       const query = { applicantId: id };
-       console.log(query);
+      let id = req.params.id;
+      id = id.padStart(3, "0");
+      const query = { applicantId: id };
       const result = await mohanobirShikkhaCollection.findOne(query);
       if (!result) {
         return res.send({ user: false, message: "User not found" });
       }
-      console.log(result);
-  
+
       res.send(result);
     });
     app.get("/recovery/:mobile", async (req, res) => {
       const mobile = req.params.mobile;
-       const query = { mobile: mobile };
-       console.log(query);
+      const query = { mobile: mobile };
       const result = await mohanobirShikkhaCollection.find(query).toArray();
       if (!result) {
         return res.send({ mobile: false, message: "User not found" });
       }
-      console.log(result);
-  
+
       res.send(result);
     });
 
     app.post("/users", async (req, res) => {
       const user = req.body;
-      
+
       const lastApplicant = await mohanobirShikkhaCollection
         .find()
         .sort({ applicantId: -1 })
         .limit(1)
         .toArray();
 
-      let newApplicantId = "001"; 
+      let newApplicantId = "001";
       if (lastApplicant.length > 0) {
-       
         let lastId = parseInt(lastApplicant[0].applicantId, 10);
-        newApplicantId = (lastId + 1).toString().padStart(3, "0"); 
+        newApplicantId = (lastId + 1).toString().padStart(3, "0");
       }
 
-      
       user.applicantId = newApplicantId;
 
       const result = await mohanobirShikkhaCollection.insertOne(user);
       if (result.acknowledged) {
-        res.send( {message: "User created successfully",
-          user: user,});
+        res.send({ message: "User created successfully", user: user });
       }
-      console.log(result);
-      
     });
     app.patch("/users", async (req, res) => {
       const user = req.body;
@@ -129,29 +118,33 @@ async function run() {
       res.send(result);
     });
     app.post("/find-users", async (req, res) => {
-      const { fullName, paymentStatus, event } = req.body;
+      const { fullName, paymentStatus, event, bkash, transactionNumber } =
+        req.body;
       let query = {};
       const page = parseInt(req.query.page) ;
       const limit = parseInt(req.query.limit) ;
       if (fullName) {
         query.fullName = { $regex: fullName, $options: "i" };
       }
+      if (bkash) {
+        query.bkash = { $regex: bkash, $options: "i" };
+      }
+      if (transactionNumber) {
+        query.transactionNumber = { $regex: transactionNumber, $options: "i" };
+      }
       if (event) {
         query.events = { $in: [event] };
-    }
+      }
       if (paymentStatus) {
         query.payment = paymentStatus;
       }
-      
-      const totalItems = await mohanobirShikkhaCollection.countDocuments(
-        query
-      );
+
+      const totalItems = await mohanobirShikkhaCollection.countDocuments(query);
       const result = await mohanobirShikkhaCollection
         .find(query)
         .skip((page - 1) * limit)
         .limit(limit)
         .toArray();
-
       res.send({
         data: result,
         currentPage: page,
