@@ -118,13 +118,16 @@ async function run() {
       res.send(result);
     });
     app.post("/find-users", async (req, res) => {
-      const { fullName, paymentStatus, event, bkash, transactionNumber } =
+      const { fullName, paymentStatus, event, bkash, transactionNumber,applicantId } =
         req.body;
       let query = {};
       const page = parseInt(req.query.page) ;
       const limit = parseInt(req.query.limit) ;
       if (fullName) {
         query.fullName = { $regex: fullName, $options: "i" };
+      }
+      if (applicantId) {
+        query.applicantId = { $regex: applicantId, $options: "i" };
       }
       if (bkash) {
         query.bkash = { $regex: bkash, $options: "i" };
