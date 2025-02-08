@@ -117,6 +117,17 @@ async function run() {
       const result = await mohanobirShikkhaCollection.updateOne(query, post);
       res.send(result);
     });
+    app.patch("/mark-users", async (req, res) => {
+      const { id, eventMark } = req.body;
+      const query = { _id: new ObjectId(id) };
+      const post = {
+        $set: {
+          eventMark,
+        },
+      };
+      const result = await mohanobirShikkhaCollection.updateOne(query, post);
+      res.send(result);
+    });
     app.post("/find-users", async (req, res) => {
       const { fullName, paymentStatus, event, bkash, transactionNumber,applicantId } =
         req.body;
